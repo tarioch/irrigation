@@ -3,16 +3,18 @@ Number   Rain          "Regen [%.2f mm/h]"   			<rain>			{weather="locationId=ho
 Number   Rain_0        "Regen Heute [%.2f mm/h]"   		<rain>			{weather="locationId=home, forecast=0, type=precipitation, property=rain"}
 Number   Rain_1        "Regen Morgen [%.2f mm/h]"   	<rain>			{weather="locationId=home, forecast=1, type=precipitation, property=rain"}
 
+Number   Temp   			"Temperatur [%.2f °C]" 			<temperature>	{weather="locationId=home, type=temperature, property=current"}
+Number   Humidity      "Luftfeuchtigkeit [%d %%]"       <temperature>	{weather="locationId=home, type=atmosphere, property=humidity"}
+Number   Rain          "Regen [%.2f mm/h]"   			<rain> 			{weather="locationId=home, type=precipitation, property=rain"}
+Number   Rain_0        "Regen Heute [%.2f mm/h]"   		<rain> 			{weather="locationId=home, forecast=0, type=precipitation, property=rain"}
+Number   Rain_1        "Regen Morgen [%.2f mm/h]"   	<rain> 			{weather="locationId=home, forecast=1, type=precipitation, property=rain"}
+
+
+
 // Irrigation
-Group Irrigation
 String Irrigaten_State "Bewässungs Controller [%s]"     <computer>                     {mqtt="<[default:nodemcu/relay1/state:state:default]"}
-Switch Irrigation_Main_Weather "Regen Abschaltung"      <energy> (Irrigation)
+Number Irrigation_Weather "Wetter Anpassung [%d %%]"		<rain>
 Switch Irrigation_Main_Manual "Manuelle Abschaltung"    <energy> (Irrigation)
-Switch Irrigation_1 "Gartensprinkler"                   <water> (Irrigation)    {mqtt=">[default:nodemcu/relay1/0/command:command:ON:1],>[default:nodemcu/relay1/0/command:command:OFF:0],<[default:nodemcu/relay1/0/state:state:MAP(switchFromMqtt.map)]"}
-Switch Irrigation_2 "Garten 2"                          <water> (Irrigation)    {mqtt=">[default:nodemcu/relay1/1/command:command:ON:1],>[default:nodemcu/relay1/1/command:command:OFF:0],<[default:nodemcu/relay1/1/state:state:MAP(switchFromMqtt.map)]"}
-Switch Irrigation_3 "Garten 3"                          <water> (Irrigation)    {mqtt=">[default:nodemcu/relay1/2/command:command:ON:1],>[default:nodemcu/relay1/2/command:command:OFF:0],<[default:nodemcu/relay1/2/state:state:MAP(switchFromMqtt.map)]"}
-Switch Irrigation_4 "Garten 4"                          <water> (Irrigation)    {mqtt=">[default:nodemcu/relay1/3/command:command:ON:1],>[default:nodemcu/relay1/3/command:command:OFF:0],<[default:nodemcu/relay1/3/state:state:MAP(switchFromMqtt.map)]"}
-Switch Irrigation_5 "Garten 5"                          <water> (Irrigation)    {mqtt=">[default:nodemcu/relay1/4/command:command:ON:1],>[default:nodemcu/relay1/4/command:command:OFF:0],<[default:nodemcu/relay1/4/state:state:MAP(switchFromMqtt.map)]"}
-Switch Irrigation_6 "Garten 6"                          <water> (Irrigation)    {mqtt=">[default:nodemcu/relay1/5/command:command:ON:1],>[default:nodemcu/relay1/5/command:command:OFF:0],<[default:nodemcu/relay1/5/state:state:MAP(switchFromMqtt.map)]"}
-Switch Irrigation_7 "Garten 7"                          <water> (Irrigation)    {mqtt=">[default:nodemcu/relay1/6/command:command:ON:1],>[default:nodemcu/relay1/6/command:command:OFF:0],<[default:nodemcu/relay1/6/state:state:MAP(switchFromMqtt.map)]"}
-Switch Irrigation_8 "Garten 8"                          <water> (Irrigation)    {mqtt=">[default:nodemcu/relay1/7/command:command:ON:1],>[default:nodemcu/relay1/7/command:command:OFF:0],<[default:nodemcu/relay1/7/state:state:MAP(switchFromMqtt.map)]"}
+Switch Irrigation_Lawn "Garten Rasen"                   <water> (Irrigation)    {mqtt=">[default:nodemcu/relay1/0/command:command:ON:1],>[default:nodemcu/relay1/0/command:command:OFF:0],<[default:nodemcu/relay1/0/state:state:MAP(switchFromMqtt.map)]"}
+Switch Irrigation_Tomato "Garten Tomaten"                          <water> (Irrigation)    {mqtt=">[default:nodemcu/relay1/1/command:command:ON:1],>[default:nodemcu/relay1/1/command:command:OFF:0],<[default:nodemcu/relay1/1/state:state:MAP(switchFromMqtt.map)]"}
+Switch Irrigation_Veggies "Garten Gemüse"                          <water> (Irrigation)    {mqtt=">[default:nodemcu/relay1/2/command:command:ON:1],>[default:nodemcu/relay1/2/command:command:OFF:0],<[default:nodemcu/relay1/2/state:state:MAP(switchFromMqtt.map)]"}
