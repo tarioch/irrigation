@@ -5,65 +5,88 @@ rule "Notify about irrigation controller state changes"
 when
 Item Irrigaten_State changed
 then
-	sendMail("myemail@example.tld", "Irrigation Controller State change", "Irrigation controller is now " + Irrigaten_State.state.format("%s"))
+	sendMail("mail@example.tld", "Irrigation Controller State change", "Irrigation controller is now " + Irrigaten_State.state.format("%s"))
 end
 
 rule "Start irrigations at 3:00"
 when
 	Time cron "0 0 3 * * ?"
 then
-	if(Irrigation_Main_Weather.state == ON && Irrigation_Main_Manual.state == ON){
-		sendMail("myemail@example.tld", "Irrigation", "Started irrigation")
-		var DateTime startTime = now
-		var DateTime endTime
-		if(true){
-			endTime = startTime.plusMinutes(30)
-			createTimer(startTime, [| sendCommand(Irrigation_1, ON) ])
-			createTimer(endTime, [| sendCommand(Irrigation_1, OFF) ])
-			startTime = endTime.plusMinutes(1)
-		}
+	var int lawnTime = 0
+	var int tomatoTime = 0
+	var int veggiesTime = 0
+	var int minDuration = 5
 
-		if(false){
-			endTime = startTime.plusMinutes(30)
-			createTimer(startTime, [| sendCommand(Irrigation_2, ON) ])
-			createTimer(endTime, [| sendCommand(Irrigation_2, OFF) ])
-			startTime = endTime.plusMinutes(1)
+	if(Irrigation_Main_Manual.state == ON){
+		if (true || Irrigation_Weather.state > 0) {
+			sendMail("mail@example.tld", "Irrigation", "Started irrigation, Weather adjustment " + Irrigation_Weather.state)
+
+			var int adjustment = (Irrigation_Weather.state as DecimalType).intValue
+			var DateTime startTime = now
+			var DateTime endTime
+
+			var int lawnDuration = Math::round(lawnTime * adjustment / 100)
+			if (lawnDuration >= minDuration) {
+				logInfo("Irrigation", "Irrigating lawn for {} minutes", lawnDuration)
+				
+				endTime = startTime.plusMinutes(lawnDuration)
+				createTimer(startTime, [| sendCommand(Irrigation_Lawn, ON) ])
+				createTimer(endTime, [| sendCommand(Irrigation_Lawn, OFF) ])
+				startTime = endTime.plusMinutes(1)
+			}
+	
+			var int tomatoDuration = Math::round(tomatoTime * adjustment / 100)
+			if(tomatoDuration >= minDuration){
+				logInfo("Irrigation", "Irrigating tomatoes for {} minutes", tomatoDuration)
+				
+				endTime = startTime.plusMinutes(tomatoDuration)
+				createTimer(startTime, [| sendCommand(Irrigation_Tomato, ON) ])
+				createTimer(endTime, [| sendCommand(Irrigation_Tomato, OFF) ])
+				startTime = endTime.plusMinutes(1)
+			}
+	
+			var int veggiesDuration = Math::round(veggiesTime * adjustment / 100)
+			if(veggiesDuration >= minDuration){
+				logInfo("Irrigation", "Irrigating veggies for {} minutes", veggiesDuration)
+				
+				endTime = startTime.plusMinutes(veggiesDuration)
+				createTimer(startTime, [| sendCommand(Irrigation_Veggies, ON) ])
+				createTimer(endTime, [| sendCommand(Irrigation_Veggies, OFF) ])
+				startTime = endTime.plusMinutes(1)
+			}
+		} else {
+			sendMail("mail@example.tld", "Irrigation", "Did not start irrigation")
 		}
-		
-	} else if (Irrigation_Main_Weather.state == OFF){
-		sendMail("myemail@example.tld", "Irrigation", "Did not start irrigation")
-	} 
+	}
 end
 
 rule "Disable/enable irrigation based on rain"
 when
 	Item Rain changed or
 	Item Rain_0 changed or
-	Item Rain_1 changed
+	Item Rain_1 changed or
+	Item Humidity changed or
+	Item Temp changed
 then
-	var Number rainThreshold = 1
-	var Number rainFutureTodayThreshold = 1
-	var Number rainFutureTomorrowThreshold = 2
+	var double minAdjustment = 0
+	var double maxAdjustment = 200 
+
+	var Number humidity = Humidity.averageSince(now.minusHours(24))
+	var int adjustHumidity = Math::round((30 - humidity).doubleValue).intValue
+	
+	var Number temp = Temp.averageSince(now.minusHours(24))
+	var int adjustTemp = Math::round((7 * (temp - 21)).doubleValue).intValue
 
 	var Number rainInLast24Hours = Rain.maximumSince(now.minusHours(24)).state as DecimalType
-
-	var String rainReason = ""
-	if(rainInLast24Hours > rainThreshold){
-		rainReason = "Rain in the last 24h"	
-	} else if( Rain_0.state > rainFutureTodayThreshold || Rain_1.state > rainFutureTomorrowThreshold){
-		rainReason = "Rain predicted"
-	}
+	var Number rainPredicted = Rain_0.state as DecimalType + Rain_1.state as DecimalType
+	var Number rain = rainInLast24Hours + rainPredicted
+	var int adjustRain = Math::round((-7.7874 * rain).doubleValue).intValue
 	
-	if(rainReason != ""){
-		if(Irrigation_Main_Weather.state != OFF){
-			logInfo("Irrigation", rainReason)
-			postUpdate(Irrigation_Main_Weather, OFF)
-		}
-	} else {
-		if(Irrigation_Main_Weather.state != ON){
-			logInfo("Irrigation", "No rain")
-			postUpdate(Irrigation_Main_Weather, ON)
-		}		
-	}
+	var int result = 100 + adjustHumidity + adjustTemp + adjustRain
+	result = Math::max(minAdjustment, Math::min(maxAdjustment, result.doubleValue)).intValue
+	
+	
+	postUpdate(Irrigation_Weather, result) 
+	logInfo("Irrigation", "Weather Humidity {} => {}%, Temperature {} => {}%, Rain {} => {}%, Total {}%", Math::round(humidity.doubleValue), adjustHumidity, Math::round(temp.doubleValue), adjustTemp, rain, adjustRain, result)
 end
 
