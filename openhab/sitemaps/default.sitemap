@@ -2,14 +2,9 @@ sitemap default label="Zuhause" {
     Frame label="Bewässerung" {
         Text item=Irrigaten_State
         Switch item=Irrigation_Main_Manual
-        Switch item=Irrigation_Main_Weather
-        Switch item=Irrigation_1
-        Switch item=Irrigation_2
-        Switch item=Irrigation_3
-        Switch item=Irrigation_4
-        Switch item=Irrigation_5
-        Switch item=Irrigation_6
-        Switch item=Irrigation_7
-        Switch item=Irrigation_8
+        Text item=Irrigation_Weather
+        Switch item=Irrigation_Lawn
+        Switch item=Irrigation_Tomato
+        Switch item=Irrigation_Veggies
     }
 }
